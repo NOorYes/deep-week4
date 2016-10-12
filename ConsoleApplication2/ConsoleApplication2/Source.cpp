@@ -5,6 +5,92 @@
 #include <chrono>         // std::chrono::seconds
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <vector>
+#include <string>
+
+class Box 
+{
+
+private:
+	int thickness;
+	const int i0;
+	const int j0;
+	const int i1;
+	const int j1;
+	const float red;
+	const float green;
+	const float blue;
+public:
+	void draw()
+	{
+		int i_center = (i0 + i1) / 2;
+		int j_center = (j0 + j1) / 2;
+
+		for (int j = j_center - thickness; j < j_center + thickness; j++) {
+			for (int i = i_center - thickness; i < i_center + thickness; i++) {
+				drawPixel(i, j, red, green, blue);
+			}
+		}
+	}
+};
+
+class Circle 
+{
+private :
+	const double rad;
+	const int i0;
+	const int j0;
+	const float red;
+	const float green;
+	const float blue;
+
+public:
+	
+	void draw()
+	{
+		for (double i = 0.0; i < 360.0; i += 0.1)
+		{
+			double angle = i *  M_PI / 180;
+
+			int x = (int)(i0 + rad * cos(angle));
+			int y = (int)(j0 + rad * sin(angle));
+
+			drawPixel(x, y, red, green, blue);
+		}
+	}
+};
+
+
+
+class GeometricObjectInterface
+{
+public:
+	void draw(const stirng&name)
+	{
+	
+	}
+};
+
+// And implement an templatized GeometricObject class.
+template <typename T>
+class GeometricObjec : GeometricObjectInterface
+{
+public:
+	{
+		T.draw();
+	}
+};
+
+int main()
+{
+	std::vector<GeometricObjectInterface*> obj_list;
+	obj_list.push_back(new GeometricObject<circle>);
+	obj_list.push_back(new GeometricObject<box>);
+	for (auto itr : obj_list)
+		itr->draw();
+	return 0;
+}
+
 
 //glfw
 const int width = 640;
@@ -206,3 +292,5 @@ int main(void)
 
 	return 0;
 }
+
+
