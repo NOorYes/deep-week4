@@ -8,89 +8,6 @@
 #include <vector>
 #include <string>
 
-class Box 
-{
-
-private:
-	int thickness;
-	const int i0;
-	const int j0;
-	const int i1;
-	const int j1;
-	const float red;
-	const float green;
-	const float blue;
-public:
-	void draw()
-	{
-		int i_center = (i0 + i1) / 2;
-		int j_center = (j0 + j1) / 2;
-
-		for (int j = j_center - thickness; j < j_center + thickness; j++) {
-			for (int i = i_center - thickness; i < i_center + thickness; i++) {
-				drawPixel(i, j, red, green, blue);
-			}
-		}
-	}
-};
-
-class Circle 
-{
-private :
-	const double rad;
-	const int i0;
-	const int j0;
-	const float red;
-	const float green;
-	const float blue;
-
-public:
-	
-	void draw()
-	{
-		for (double i = 0.0; i < 360.0; i += 0.1)
-		{
-			double angle = i *  M_PI / 180;
-
-			int x = (int)(i0 + rad * cos(angle));
-			int y = (int)(j0 + rad * sin(angle));
-
-			drawPixel(x, y, red, green, blue);
-		}
-	}
-};
-
-
-
-class GeometricObjectInterface
-{
-public:
-	void draw(const stirng&name)
-	{
-	
-	}
-};
-
-// And implement an templatized GeometricObject class.
-template <typename T>
-class GeometricObjec : GeometricObjectInterface
-{
-public:
-	{
-		T.draw();
-	}
-};
-
-int main()
-{
-	std::vector<GeometricObjectInterface*> obj_list;
-	obj_list.push_back(new GeometricObject<circle>);
-	obj_list.push_back(new GeometricObject<box>);
-	for (auto itr : obj_list)
-		itr->draw();
-	return 0;
-}
-
 
 //glfw
 const int width = 640;
@@ -98,149 +15,167 @@ const int height = 480;
 
 float* pixels = new float[width*height * 3];
 
-void drawPixel(const int& i, const int& j, const float& red, const float& green, const float& blue)
-{
-	pixels[(i + width* j) * 3 + 0] = red;
-	pixels[(i + width* j) * 3 + 1] = green;
-	pixels[(i + width* j) * 3 + 2] = blue;
-}
-void drawThicknerLine(const int& thickness, const int& i0, const int& j0, const int& i1, const int& j1, const float& red, const float& green, const float& blue) {
-	for (int i = i0; i <= i1; i++)
-	{
-		const int j = (j1 - j0)*(i - i0) / (i1 - i0) + j0;
+void drawPixel(const int& i, const int& j, const int& color);
+void drawLine(const int& i0, const int& j0, const int& i1, const int& j1, const int& color);
 
-		for (int k = 0; k < thickness; k++) {
-			drawPixel(i + k, j, red, green, blue);
-		}
+
+class Box 
+{
+
+private:
+	int x = 10;
+	int y = 10;
+	int size = 100;
+	int color = 0x0000FF;
+
+public:
+	void draw()
+	{
+			drawLine(x, y, x, y + size, color);
+			drawLine(x, y, x + size, y, color);
+			drawLine(x, y + size, x + size, y + size, color);
+			drawLine(x + size, y, x + size, y + size, color);
+
 	}
+};
+
+class Circle 
+{
+private :
+	const int& x=20;
+	const int& y=20;
+	const int& size = 200;
+	const int& bold = 70;
+	int color = 0x228b22;
+
+public:
+	
+	void draw()
+	{
+		int bSize = size / 2;
+		int cSize = (size - 10) / 2;
+		for (int i = 0; i < size; i++) {
+			 		for (int j = 0; j < size; j++) {
+				 			if (!(
+									(i - bSize)*(i - bSize) + (j - bSize)*(j - bSize) <= (cSize * cSize) - bold
+					 || (i - bSize)*(i - bSize) + (j - bSize)*(j - bSize) >= (cSize * cSize) + bold
+					)) {
+					 				drawPixel(x + i, y + j, color);
+				}
+				
+			}
+		}
+
+	}
+};
+
+
+class GeometricObjectInterface 
+{
+public:
+	virtual void draw() = 0; // 순수 가상 함수.
+};
+
+// And implement an templatized GeometricObject class.
+
+template <typename T>
+class GeometricObject : public GeometricObjectInterface // 구현합니다.
+{
+public:
+	void draw() 
+	{
+		T drawfigure;
+		drawfigure.draw();
+	}
+};
+
+
+	std::vector<GeometricObjectInterface*> obj_list;
+
+
+void drawPixel(const int& i, const int& j, const int& color)
+{
+	float red = (float)((color & 0xFF0000) / 0x00FFFF) / 255;
+	float green = (float)((color & 0x00FF00) / 0x0000FF) / 255;
+	float blue = (float)(color & 0x0000FF) / 255;
+	if (i < 0 || i >= width) return;
+	if (j < 0 || j >= height) return;
+	pixels[(i + width * (height - j - 1)) * 3 + 0] = red;
+	pixels[(i + width * (height - j - 1)) * 3 + 1] = green;
+	pixels[(i + width * (height - j - 1)) * 3 + 2] = blue;
+
 }
+
 // scratched from https://courses.engr.illinois.edu/ece390/archive/archive-f2000/mp/mp4/anti.html
 // see 'Rasterization' part.
-void drawLine(const int& i0, const int& j0, const int& i1, const int& j1, const float& red, const float& green, const float& blue)
+
+
+ void drawLine(const int& i0, const int& j0, const int& i1, const int& j1, const int& color)
 {
-	for (int i = i0; i <= i1; i++)
-	{
-		const int j = (j1 - j0)*(i - i0) / (i1 - i0) + j0;
-
-		drawPixel(i, j, red, green, blue);
-	}
-}
-void drawSquare(int thickness, const int& i0, const int& j0, const int& i1, const int& j1, const float& red, const float& green, const float& blue) {
-	int i_center = (i0 + i1) / 2;
-	int j_center = (j0 + j1) / 2;
-
-	for (int j = j_center - thickness; j < j_center + thickness; j++) {
-		for (int i = i_center - thickness; i < i_center + thickness; i++) {
-			drawPixel(i, j, red, green, blue);
+ 	if (i1 - i0 == 0) {
+				for (int i = j0; i <= j1; i++) {
+						drawPixel(i0 + 0, i, color);
+						drawPixel(i0 + 1, i, color);
+						drawPixel(i0 - 1, i, color);
+						drawPixel(i0, i + 1, color);
+						drawPixel(i0, i - 1, color);
 		}
+				return;
 	}
-}
-void drawPolygon() {
-	/*
-	//오각형
-	int i_center = 120;
-	int j_center = 130;
-	int size = 10;
-	int j_start = j_center - size;
-	int j_end = j_center + size;
-	for (int j = j_start; j <= j_end + size; j++) {
-	int i_start = i_center - size + (j / 5);
-	int i_end = i_center + size - (j / 5);
-	for (int i = i_start; i <= i_end; i++) {
-	//if(j == j_start || j == j_end || i == i_start || i == i_end)
-	drawPixel(i, j, 1.0f, 0.0f, 0.0f);
-	}
-	}
-	*/
-	drawLine(500, 200, 550, 200, 0.0f, 0.0f, 0.0f);
-	drawLine(480, 250, 525, 290, 0.0f, 0.0f, 0.0f);
-	drawLine(525, 290, 570, 250, 0.0f, 0.0f, 0.0f);
+	
 
-	drawLine(480, 250, 500, 200, 0.0f, 0.0f, 0.0f);
-	drawLine(480, 251, 500, 201, 0.0f, 0.0f, 0.0f);
-
-	drawLine(550, 200, 570, 250, 0.0f, 0.0f, 0.0f);
-	drawLine(550, 201, 570, 251, 0.0f, 0.0f, 0.0f);
-}
-void drawCircle(const double& rad, const int& i0, const int& j0, const float& red, const float& green, const float& blue) {
-
-	{
-		for (double i = 0.0; i < 360.0; i += 0.1)
+		 	int preJ = -1;
+		for (int i = i0; i <= i1; i++) 
 		{
-			double angle = i *  M_PI / 180;
+				const int j = (j1 - j0) * (i - i0) / (i1 - i0) + j0;
+		 		drawPixel(i + 0, j, color);
+		 		drawPixel(i + 1, j, color);
+		 		drawPixel(i - 1, j, color);
+	 			drawPixel(i, j + 1, color);
+		 		drawPixel(i, j - 1, color);
+		
 
-			int x = (int)(i0 + rad * cos(angle));
-			int y = (int)(j0 + rad * sin(angle));
+				if (preJ != -1 && abs(abs(preJ) - abs(j)) > 3) {
+				 		drawPixel(i - 1, j - 1, color);
+			 			drawPixel(i - 1, j + 1, color);
+						drawPixel(i + 1, j - 1, color);
+						drawPixel(i + 1, j + 1, color);
+			
 
-			drawPixel(x, y, red, green, blue);
+				 	
+				 		drawPixel(i - 1, j - 2, color);
+						drawPixel(i - 0, j - 2, color);
+			 			drawPixel(i + 1, j - 2, color);
+			
+
+						
+				 		drawPixel(i - 1, j + 2, color);
+						drawPixel(i - 0, j + 2, color);
+			 			drawPixel(i + 1, j + 2, color);
+			
 		}
-	}
-
-}
-void drawTriangle() {
-
-	int i_center = 100;
-	int j_center = 100;
-	int size = 70;
-	int j_start = j_center - size;
-	int j_end = j_center + size;
-
-	for (int j = j_start; j <= j_end; j++) {
-		int i_start = i_center - size + (j / 2);
-		int i_end = i_center + size - (j / 2);
-
-		for (int i = i_start; i <= i_end; i++) {
-			if (j == j_start || j == j_end || i == i_start || i == i_end)
-				drawPixel(i, j, 1.0f, 0.0f, 0.0f);
-		}
+		 		preJ = j;
 	}
 }
 
-void drawEmptySquare(int size, const int& i0, const int& j0, const int& i1, const int& j1, const float& red, const float& green, const float& blue) {
-	int i_center = (i0 + i1) / 2;
-	int j_center = (j0 + j1) / 2;
 
-	for (int j = j_center - size; j <= j_center + size; j++) {
-		//for (int i = i_center - thickness; i < i_center + thickness; i++) {
-		for (int i = i_center - size; i <= i_center + size; i = i + size * 2)
-			drawPixel(i, j, red, green, blue);
-
-	}
-	//for (int j = j_center - thickness; j < j_center + thickness; j++) {
-	for (int i = i_center - size; i <= i_center + size; i++) {
-		for (int j = j_center - size; j <= j_center + size; j = j + size * 2)
-			drawPixel(i, j, red, green, blue);
-	}
-}
 void drawOnPixelBuffer()
 {
 	//std::memset(pixels, 1.0f, sizeof(float)*width*height * 3); // doesn't work
-	//std::fill_n(pixels, width*height * 3, 1.0f);	// white background
+	std::fill_n(pixels, width*height * 3, 1.0f);	// white background
 
 	// 흰색 배경
-	for (int i = 0; i<width*height; i++) {
-		pixels[i * 3 + 0] = 1.0f; // red 
-		pixels[i * 3 + 1] = 1.0f; // green
-		pixels[i * 3 + 2] = 1.0f; // blue
+	
+	for (auto itr : obj_list)
+	{
+		itr->draw();
 	}
 
-	const int i = rand() % width, j = rand() % height;
-	drawPixel(i, j, 0.0f, 0.0f, 0.0f);
-
-	// drawing a line
 	//TODO: anti-aliasing
-	const int i0 = 100, i1 = 200;
-	const int j0 = 300, j1 = 400;
-	const int thickness = 10;
-	const int size = 30;
-	//drawLine(i0, j0, i1, j1, 1.0f, 0.0f, 0.0f);
-	drawThicknerLine(thickness, i0, j0, i1, j1, 0.0f, 1.0f, 0.0f);
-	drawSquare(size, i0 + 300, j0, i1 + 300, j1, 0.0f, 1.0f, 1.0f);
-	drawCircle(50, i0 + 100, i1 + 100, 0.0f, 1.0f, 0.0f);
-	drawEmptySquare(size, i0 + 100, j0, i1 + 100, j1, 1.0f, 0.0f, 0.0f);
-	drawTriangle();
-	drawPolygon();
+
 	//TODO: try moving object
+	
+	return;
 }
 
 int main(void)
@@ -263,11 +198,14 @@ int main(void)
 	glfwMakeContextCurrent(window);
 	glClearColor(1, 1, 1, 1); // while background
 
-							  /* Loop until the user closes the window */
+	obj_list.push_back(new GeometricObject<Circle>);
+	obj_list.push_back(new GeometricObject<Box>);
+
+	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		/* Render here */
-		//glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		drawOnPixelBuffer();
 
